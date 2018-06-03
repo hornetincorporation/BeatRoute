@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "572313586766",
+    "firebase_url": "https://beatroute-215a7.firebaseio.com",
+    "project_id": "beatroute-215a7",
+    "storage_bucket": "beatroute-215a7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572313586766:android:79d7e93f9acc780e",
+        "android_client_info": {
+          "package_name": "com.hornetincorporation.beatroute"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "572313586766-7rmujq36acsd6q0ts2sfivdrnd5fdbf0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hornetincorporation.beatroute",
+            "certificate_hash": "d0d846318881e2cdf1f096e6996949023c942f0d"
+          }
+        },
+        {
+          "client_id": "572313586766-pji6qsvtg8l0p312e0kcbcj0dqn3cqer.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHdZIUh-56sTTI45goGkDucDsRsqRCenI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "572313586766-pji6qsvtg8l0p312e0kcbcj0dqn3cqer.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

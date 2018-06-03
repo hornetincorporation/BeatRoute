@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single"
+        android:id="@+id/employees_nav">
+        <item
+            android:id="@+id/nav_beatpoints"
+            android:icon="@drawable/ic_round_location_city_24px"
+            android:title="Beat Points" />
+        <item
+            android:id="@+id/nav_my_route"
+            android:icon="@drawable/ic_round_swap_calls_24px"
+            android:title="My Route" />
+        <item
+            android:id="@+id/nav_points_covered"
+            android:icon="@drawable/ic_round_how_to_reg_24px"
+            android:title="Completed Beat Points" />
+    </group>
+    <group android:checkableBehavior="single"
+        android:id="@+id/officers_nav">
+        <item
+            android:id="@+id/nav_beeters_location"
+            android:icon="@drawable/ic_round_person_pin_24px"
+            android:title="Current Position" />
+        <item
+            android:id="@+id/nav_add_beat_points"
+            android:icon="@drawable/ic_round_location_city_24px"
+            android:title="Add Beat Points" />
+    </group>
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Send" />
+        </menu>
+    </item>
+
+</menu>
