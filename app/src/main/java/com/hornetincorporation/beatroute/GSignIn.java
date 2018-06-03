@@ -78,7 +78,9 @@ public class GSignIn extends BaseActivity implements
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         checkSignUp(currentUser.getUid());
+
         updateUI(currentUser);
+
     }
     // [END on_start_check_user]
 
@@ -89,6 +91,7 @@ public class GSignIn extends BaseActivity implements
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
+            
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // Google Sign In was successful, authenticate with Firebase
