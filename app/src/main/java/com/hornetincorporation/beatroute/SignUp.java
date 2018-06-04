@@ -78,7 +78,6 @@ public class SignUp extends BaseActivity implements
 
         // Button listeners
         findViewById(R.id.nextbutton).setOnClickListener(this);
-        findViewById(R.id.backbutton).setOnClickListener(this);
 
         //Get the bundle
         Bundle bundle = getIntent().getExtras();
