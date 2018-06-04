@@ -1,5 +1,6 @@
 package com.hornetincorporation.beatroute;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -96,34 +97,68 @@ public class SignUp extends BaseActivity implements
 
         database = FirebaseDatabase.getInstance();
         beeters = database.getReference("beeters");
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        checkSUData(beeters);
+    }
 
-        beeters.addValueEventListener(new ValueEventListener() {
+    public void getSignUpData(DatabaseReference dbr, final checkSignUp listener) {
+        listener.onStart();
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage(getString(R.string.loading));
+            mProgressDialog.setIndeterminate(true);
+        }
+
+        mProgressDialog.show();
+
+        dbr.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for (DataSnapshot beeterSnapshot : dataSnapshot.getChildren()) {
-                    if (beeterSnapshot.exists()) {
-                        if (beeterSnapshot.getKey().toString().equals(sUserId4mSU)) {
-                            txUserName.setText(beeterSnapshot.child("BUserName").getValue().toString());
-                            txEmailID.setText(beeterSnapshot.child("BEmailID").getValue().toString());
-                            txPhoneNum.setText(beeterSnapshot.child("BPhoneNumber").getValue().toString());
-                            txOfficialID.setText(beeterSnapshot.child("BOfficialID").getValue().toString());
-                            txOfficer.setText(beeterSnapshot.child("BOfficer").getValue().toString());
-                        }
-                    }
-                }
-                updateUI();
+                listener.onSuccess(dataSnapshot);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                System.out.println("The read failed: " + databaseError.getCode());
+                listener.onFailed(databaseError);
+            }
+        });
+    }
+
+    private void checkSUData(DatabaseReference dbrBeeters) {
+        getSignUpData(dbrBeeters, new checkSignUp() {
+            @Override
+            public void onStart() {
+                //DO SOME THING WHEN START GET DATA HERE
+            }
+
+            @Override
+            public void onSuccess(DataSnapshot data) {
+                //DO SOME THING WHEN GET DATA SUCCESS HERE
+                if (mProgressDialog != null && mProgressDialog.isShowing()) {
+
+                    for (DataSnapshot beeterSnapshot : data.getChildren()) {
+                        if (beeterSnapshot.exists()) {
+                            if (beeterSnapshot.getKey().toString().equals(sUserId4mSU)) {
+                                txUserName.setText(beeterSnapshot.child("BUserName").getValue().toString());
+                                txEmailID.setText(beeterSnapshot.child("BEmailID").getValue().toString());
+                                txPhoneNum.setText(beeterSnapshot.child("BPhoneNumber").getValue().toString());
+                                txOfficialID.setText(beeterSnapshot.child("BOfficialID").getValue().toString());
+                                txOfficer.setText(beeterSnapshot.child("BOfficer").getValue().toString());
+                            }
+                        }
+                    }
+                    mProgressDialog.dismiss();
+                    updateUI();
+                }
+            }
+
+            @Override
+            public void onFailed(DatabaseError databaseError) {
+                //DO SOME THING WHEN GET DATA FAILED HERE
             }
         });
     }
@@ -152,6 +187,8 @@ public class SignUp extends BaseActivity implements
                     }
 
                     beeters.child(sUserId4mSU).setValue(beeter);
+
+                    checkSUData(beeters);
 
                     Snackbar.make(findViewById(R.id.main_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
 
