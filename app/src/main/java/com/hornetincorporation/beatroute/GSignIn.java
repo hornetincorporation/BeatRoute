@@ -36,11 +36,6 @@ public class GSignIn extends BaseActivity implements
     private FirebaseAuth mAuth;
     // [END declare_auth]
 
-    private FirebaseDatabase database;
-    private DatabaseReference beeters;
-
-    private String sEmailID, sOfficer, sOfficialID, sPhone, sUserName = "";
-
     private GoogleSignInClient mGoogleSignInClient;
 
     @Override
@@ -66,9 +61,6 @@ public class GSignIn extends BaseActivity implements
         // [START initialize_auth]
         mAuth = FirebaseAuth.getInstance();
         // [END initialize_auth]
-
-        database = FirebaseDatabase.getInstance();
-        beeters = database.getReference("beeters");
     }
 
     // [START on_start_check_user]
@@ -77,10 +69,7 @@ public class GSignIn extends BaseActivity implements
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        checkSignUp(currentUser.getUid());
-
         updateUI(currentUser);
-
     }
     // [END on_start_check_user]
 
@@ -91,7 +80,7 @@ public class GSignIn extends BaseActivity implements
 
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
-            
+
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // Google Sign In was successful, authenticate with Firebase
@@ -125,7 +114,6 @@ public class GSignIn extends BaseActivity implements
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            checkSignUp(user.getUid());
                             updateUI(user);
                         } else {
                             // If sign in fails, display a message to the user.
@@ -133,7 +121,6 @@ public class GSignIn extends BaseActivity implements
                             Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
                             updateUI(null);
                         }
-
                         // [START_EXCLUDE]
                         hideProgressDialog();
                         // [END_EXCLUDE]
@@ -164,34 +151,17 @@ public class GSignIn extends BaseActivity implements
     }
 
     private void updateUI(FirebaseUser user) {
-        hideProgressDialog();
-
         if (user != null) {
             findViewById(R.id.sign_in_button).setVisibility(View.GONE);
             findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
-            if (!sUserName.equals("")) {
-                Intent mintent = new Intent(this, MainActivity.class);
 
-                mintent.putExtra("UserID", user.getUid());
-//          mintent.putExtra("PhotoURL4mSU", user.getPhotoUrl());
-                mintent.putExtra("UserName", sUserName);
-                mintent.putExtra("EmailID", sEmailID);
-                mintent.putExtra("PhoneNumber", sPhone);
-                mintent.putExtra("OfficialID", sOfficialID);
-                mintent.putExtra("Officer", sOfficer);
-
-                startActivity(mintent);
-            } else {
-                Intent i = new Intent(this, SignUp.class);
-
-                i.putExtra("UserID4mSU", user.getUid());
-                i.putExtra("PhotoURL4mSU", user.getPhotoUrl());
-                i.putExtra("UserName4mSU", user.getDisplayName());
-                i.putExtra("EmailID4mSU", user.getEmail());
-                i.putExtra("PhoneNumber4mSU", user.getPhoneNumber());
-                //Fire that second activity
-                startActivity(i);
-            }
+            Intent i = new Intent(this, SignUp.class);
+            i.putExtra("UserID4mSU", user.getUid());
+            i.putExtra("PhotoURL4mSU", user.getPhotoUrl());
+            i.putExtra("UserName4mSU", user.getDisplayName());
+            i.putExtra("EmailID4mSU", user.getEmail());
+            i.putExtra("PhoneNumber4mSU", user.getPhoneNumber());
+            startActivity(i);
         } else {
             findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.sign_out_button).setVisibility(View.GONE);
@@ -205,34 +175,6 @@ public class GSignIn extends BaseActivity implements
             signIn();
         } else if (i == R.id.sign_out_button) {
             signOut();
-        }
-    }
-
-    private void checkSignUp(final String sUserID) {
-        if (sUserID != null) {
-
-            beeters.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                    for (DataSnapshot btrSnapshot : dataSnapshot.getChildren()) {
-
-                        if (btrSnapshot.exists()) {
-                            if (btrSnapshot.getKey().toString().equals(sUserID)) {
-                                sEmailID = btrSnapshot.child("BEmailID").getValue().toString();
-                                sOfficer = btrSnapshot.child("BOfficer").getValue().toString();
-                                sOfficialID = btrSnapshot.child("BOfficialID").getValue().toString();
-                                sPhone = btrSnapshot.child("BPhoneNumber").getValue().toString();
-                                sUserName = btrSnapshot.child("BUserName").getValue().toString();
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                }
-            });
         }
     }
 }
