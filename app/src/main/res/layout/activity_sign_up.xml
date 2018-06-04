@@ -17,6 +17,7 @@
         <ImageView
             android:id="@+id/profile_pic"
             style="@style/ThemeOverlay.FirebaseIcon"
+            android:contentDescription="User Image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@mipmap/ic_launcher" />
@@ -124,28 +125,14 @@
         android:layout_weight="0.75"
         android:background="@color/grey_300">
 
-        <LinearLayout
+        <Button
+            android:id="@+id/nextbutton"
+            style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/backbutton"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/back"
-                android:theme="@style/ThemeOverlay.MyDarkButton" />
-
-            <Button
-                android:id="@+id/nextbutton"
-                style="@style/Widget.AppCompat.Button.Colored"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/next"
-                android:theme="@style/ThemeOverlay.MyDarkButton" />
-        </LinearLayout>
+            android:text="@string/next"
+            android:theme="@style/ThemeOverlay.MyDarkButton" />
     </RelativeLayout>
 
     <RelativeLayout

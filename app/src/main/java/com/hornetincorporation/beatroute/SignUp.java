@@ -129,13 +129,6 @@ public class SignUp extends BaseActivity implements
         });
     }
 
-    //    @Override
-//    protected void onRestart() {
-//        // TODO Auto-generated method stub
-//        super.onRestart();
-//
-//        qbeeter = beeters.orderByKey().equalTo(sUserId4mSU);
-//    }
     @Override
     public void onClick(View v) {
         int i = v.getId();
@@ -170,9 +163,6 @@ public class SignUp extends BaseActivity implements
                 Snackbar.make(findViewById(R.id.main_layout), "User Account already exists! Taking to your account.", Snackbar.LENGTH_SHORT).show();
                 movetonextpage();
             }
-        } else if (i == R.id.backbutton) {
-            Intent bintent = new Intent(this, GSignIn.class);
-            startActivity(bintent);
         }
     }
 
