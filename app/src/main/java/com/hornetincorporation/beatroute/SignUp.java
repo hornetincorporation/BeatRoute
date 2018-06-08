@@ -147,6 +147,7 @@ public class SignUp extends BaseActivity implements
                                 txPhoneNum.setText(beeterSnapshot.child("BPhoneNumber").getValue().toString());
                                 txOfficialID.setText(beeterSnapshot.child("BOfficialID").getValue().toString());
                                 txOfficer.setText(beeterSnapshot.child("BOfficer").getValue().toString());
+                                break;
                             }
                         }
                     }
