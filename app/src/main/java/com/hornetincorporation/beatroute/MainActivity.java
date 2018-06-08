@@ -185,8 +185,6 @@ public class MainActivity extends AppCompatActivity
             navigationView.getMenu().findItem(R.id.nav_beeters_location).setVisible(false);
         }
 
-
-
         // initialize GoogleMaps
         initGMaps();
 
@@ -267,10 +265,6 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
     public void drawGeofenceFromDB() {
         beetpoints = beatroute.child("beetpoints").getRef();
 
