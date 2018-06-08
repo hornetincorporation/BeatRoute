@@ -185,8 +185,7 @@ public class MainActivity extends AppCompatActivity
             navigationView.getMenu().findItem(R.id.nav_beeters_location).setVisible(false);
         }
 
-        database = FirebaseDatabase.getInstance();
-        beatroute = database.getReference();
+
 
         // initialize GoogleMaps
         initGMaps();
@@ -219,6 +218,9 @@ public class MainActivity extends AppCompatActivity
 
         // Call GoogleApiClient connection when starting the Activity
         googleApiClient.connect();
+
+        database = FirebaseDatabase.getInstance();
+        beatroute = database.getReference();
 
         beetpoints = beatroute.child("beetpoints").getRef();
 
@@ -265,6 +267,10 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
     public void drawGeofenceFromDB() {
         beetpoints = beatroute.child("beetpoints").getRef();
 

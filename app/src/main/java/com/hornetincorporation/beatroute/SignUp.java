@@ -94,14 +94,13 @@ public class SignUp extends BaseActivity implements
         etUserName.setText(sUserName4mSU);
         etEmailID.setText(sEmailID4mSU);
         etPhoneNum.setText(sPhoneNumber4mSU);
-
-        database = FirebaseDatabase.getInstance();
-        beeters = database.getReference("beeters");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        database = FirebaseDatabase.getInstance();
+        beeters = database.getReference("beeters");
         checkSUData(beeters);
     }
 
@@ -151,8 +150,8 @@ public class SignUp extends BaseActivity implements
                             }
                         }
                     }
-                    mProgressDialog.dismiss();
                     updateUI();
+                    mProgressDialog.dismiss();
                 }
             }
 
@@ -188,6 +187,8 @@ public class SignUp extends BaseActivity implements
 
                     beeters.child(sUserId4mSU).setValue(beeter);
 
+                    database = FirebaseDatabase.getInstance();
+                    beeters = database.getReference("beeters");
                     checkSUData(beeters);
 
                     Snackbar.make(findViewById(R.id.main_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
