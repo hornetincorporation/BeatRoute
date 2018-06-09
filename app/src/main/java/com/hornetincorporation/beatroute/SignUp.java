@@ -99,6 +99,15 @@ public class SignUp extends BaseActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+
+        database = FirebaseDatabase.getInstance();
+        beeters = database.getReference("beeters");
+        checkSUData(beeters);
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         database = FirebaseDatabase.getInstance();
         beeters = database.getReference("beeters");
         checkSUData(beeters);
@@ -234,5 +243,12 @@ public class SignUp extends BaseActivity implements
         mintent.putExtra("Officer", txOfficer.getText().toString());
 
         startActivity(mintent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        database = FirebaseDatabase.getInstance();
+        beeters = database.getReference("beeters");
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }

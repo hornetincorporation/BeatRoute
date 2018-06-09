@@ -40,12 +40,14 @@ import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -65,6 +67,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -76,9 +80,11 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -99,6 +105,10 @@ public class MainActivity extends AppCompatActivity
 
     private GoogleMap map;
     private GoogleApiClient googleApiClient;
+    private GeofencingClient mGeofencingClient;
+
+    List<Geofence> mGeofenceList;
+
     private Location lastLocation;
 
     private TextView textLat, textLong;
@@ -115,7 +125,9 @@ public class MainActivity extends AppCompatActivity
     DatabaseReference beatroute, beetpoints, beetroot, beeterlastlocation, beeterlocation, beetrootdraw;
 
     ArrayAdapter beetrootname;
+
     NavigationView navigationView;
+    //LatLng gflocation;
 
     private static final String NOTIFICATION_MSG = "NOTIFICATION MSG";
 
@@ -130,6 +142,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mGeofencingClient = LocationServices.getGeofencingClient(this);
+
+        mGeofenceList = new ArrayList<Geofence>();
 
         textLat = (TextView) findViewById(R.id.lat);
         textLong = (TextView) findViewById(R.id.lon);
@@ -213,7 +229,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-
         // Call GoogleApiClient connection when starting the Activity
         googleApiClient.connect();
 
@@ -252,11 +267,12 @@ public class MainActivity extends AppCompatActivity
 
                     markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(iClr).substring(0, 6));
                     drawGeofence(gflocation);
-
+                    //createGeofence(sGFName, gflocation));
                     Geofence geofence = createGeofence(sGFName, gflocation);
-                    GeofencingRequest geofenceRequest = createGeofenceRequest(geofence);
-                    addGeofence(geofenceRequest);
+                    mGeofenceList.add(geofence);
                 }
+                GeofencingRequest geofenceRequest = createGeofenceRequest(mGeofenceList);
+                addGeofence(geofenceRequest);
             }
 
             @Override
@@ -298,14 +314,14 @@ public class MainActivity extends AppCompatActivity
                     double gflat = Double.parseDouble(latlong[0]);
                     double gflong = Double.parseDouble(latlong[1]);
 
-                    LatLng gflocation = new LatLng(gflat, gflong);
+                    LatLng gfloc = new LatLng(gflat, gflong);
 
-                    //builder.include(gflocation);
+                    //builder.include(gfloc);
 
-                    markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(iClr).substring(0, 6));
+                    markerForGeofence(sGFTitle, gfloc, "#" + Integer.toHexString(iClr).substring(0, 6));
 
-                    //markerForGeofence(sGFTitle, gflocation);
-                    drawGeofence(gflocation);
+                    //markerForGeofence(sGFTitle, gfloc);
+                    drawGeofence(gfloc);
                 }
                 //LatLngBounds bounds = builder.build();
                 //CameraUpdate cameraUpdate= CameraUpdateFactory.newLatLngBounds(bounds,10000);
@@ -640,7 +656,7 @@ public class MainActivity extends AppCompatActivity
 //            if (geoFenceMarker != null)
 //                geoFenceMarker.remove();
             if (title.trim().equals("Add New Route/Point")) {
-                if(geoFenceMarker.getTitle().equals("Add New Route/Point")) {
+                if (geoFenceMarker.getTitle().equals("Add New Route/Point")) {
                     geoFenceMarker.remove();
                 }
             }
@@ -649,16 +665,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Start Geofence creation process
-    private void startGeofence() {
-        Log.i(TAG, "startGeofence()");
-        if (geoFenceMarker != null) {
-            Geofence geofence = createGeofence(null, geoFenceMarker.getPosition());
-            GeofencingRequest geofenceRequest = createGeofenceRequest(geofence);
-            addGeofence(geofenceRequest);
-        } else {
-            Log.e(TAG, "Geofence marker is null");
-        }
-    }
+//    private void startGeofence() {
+//        Log.i(TAG, "startGeofence()");
+//        if (geoFenceMarker != null) {
+//            Geofence geofence = createGeofence(null, geoFenceMarker.getPosition());
+//            GeofencingRequest geofenceRequest = createGeofenceRequest(geofence);
+//            addGeofence(geofenceRequest);
+//        } else {
+//            Log.e(TAG, "Geofence marker is null");
+//        }
+//    }
 
 
     // Create a Geofence
@@ -677,11 +693,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Create a Geofence Request
-    private GeofencingRequest createGeofenceRequest(Geofence geofence) {
+    private GeofencingRequest createGeofenceRequest(List<Geofence> geofence) {
         Log.d(TAG, "createGeofenceRequest");
         return new GeofencingRequest.Builder()
                 .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-                .addGeofence(geofence)
+                .addGeofences(geofence)
                 .build();
     }
 
@@ -699,21 +715,40 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Add the created GeofenceRequest to the device's monitoring list
-    private void addGeofence(GeofencingRequest request) {
+    private void addGeofence(final GeofencingRequest request) {
         Log.d(TAG, "addGeofence");
+        //Snackbar.make(findViewById(R.id.main_layout),"Geofence added: " + request.toString(), Snackbar.LENGTH_SHORT).show();
+
         if (checkPermission())
-            LocationServices.GeofencingApi.addGeofences(
-                    googleApiClient,
-                    request,
-                    createGeofencePendingIntent()
-            ).setResultCallback(this);
+            mGeofencingClient.addGeofences(request, createGeofencePendingIntent())
+                    .addOnSuccessListener(this, new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            // Geofences added
+                        }
+                    })
+                    .addOnFailureListener(this, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // Failed to add geofences
+                            // ...
+                            //textLong.setText(e.getMessage().toString());
+                            //Snackbar.make(findViewById(R.id.main_layout), e.getMessage(), Snackbar.LENGTH_SHORT).show();
+
+                        }
+                    });
+//            LocationServices.GeofencingApi.addGeofences(
+//                    googleApiClient,
+//                    request,
+//                    createGeofencePendingIntent()
+//            ).setResultCallback(this);
     }
 
     @Override
     public void onResult(@NonNull Status status) {
         Log.i(TAG, "onResult: " + status);
         if (status.isSuccess()) {
-            saveGeofence();
+            //saveGeofence();
             //drawGeofence();
         } else {
             // inform about fail
@@ -799,12 +834,12 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Date beetingdate, curdate;
 
-                if(navigationView.getMenu().findItem(R.id.nav_my_route).isChecked()) {
+                if (navigationView.getMenu().findItem(R.id.nav_my_route).isChecked()) {
                     PolylineOptions polylineOptions = new PolylineOptions();
                     polylineOptions.clickable(true);
 
                     for (DataSnapshot bLocSnapshot : dataSnapshot.getChildren()) {
-                        beetingdate=null;
+                        beetingdate = null;
                         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
                         try {
                             beetingdate = dateFormat.parse(bLocSnapshot.getKey().toString());
@@ -816,7 +851,7 @@ public class MainActivity extends AppCompatActivity
                         long difference = Math.abs(curdate.getTime() - beetingdate.getTime());
                         long differenceDates = difference / (24 * 60 * 60 * 1000);
 
-                        if(differenceDates<=1) {
+                        if (differenceDates <= 1) {
                             String[] latlong = bLocSnapshot.getValue().toString().split(",");
                             double gflat = Double.parseDouble(latlong[0]);
                             double gflong = Double.parseDouble(latlong[1]);
@@ -827,6 +862,7 @@ public class MainActivity extends AppCompatActivity
                     Polyline myroute = map.addPolyline(polylineOptions);
                 }
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -842,7 +878,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                if(navigationView.getMenu().findItem(R.id.nav_beeters_location).isChecked()) {
+                if (navigationView.getMenu().findItem(R.id.nav_beeters_location).isChecked()) {
                     map.clear();
                     for (DataSnapshot bLocSnapshot : dataSnapshot.getChildren()) {
 
@@ -870,6 +906,12 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        // create GoogleApiClient
+//        createGoogleApi();
+//        super.onActivityResult(requestCode, resultCode, data);
+//    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
