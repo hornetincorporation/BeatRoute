@@ -3,12 +3,14 @@ package com.hornetincorporation.beatroute;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -89,23 +91,43 @@ public class GeofenceTrasitionService extends IntentService {
         // Creating and sending Notification
         NotificationManager notificatioMng =
                 (NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE );
+
+        String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "My Notifications", NotificationManager.IMPORTANCE_HIGH);
+
+            // Configure the notification channel.
+            notificationChannel.setDescription("Channel description");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+            notificationChannel.enableVibration(true);
+            notificatioMng.createNotificationChannel(notificationChannel);
+        }
+
         notificatioMng.notify(
                 GEOFENCE_NOTIFICATION_ID,
-                createNotification(msg, notificationPendingIntent));
+                createNotification(msg, notificationPendingIntent, NOTIFICATION_CHANNEL_ID));
 
     }
 
     // Create notification
-    private Notification createNotification(String msg, PendingIntent notificationPendingIntent) {
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
-        notificationBuilder
+    private Notification createNotification(String msg, PendingIntent notificationPendingIntent, String sChannel) {
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, sChannel);
+
+        notificationBuilder.setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_round_place_24px)
                 .setColor(Color.RED)
+                .setTicker("Geofence Notification!")
+                //     .setPriority(Notification.PRIORITY_MAX)
                 .setContentTitle(msg)
                 .setContentText("Geofence Notification!")
                 .setContentIntent(notificationPendingIntent)
-                .setDefaults(Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND)
-                .setAutoCancel(true);
+                .setContentInfo("Info");
+
         return notificationBuilder.build();
     }
 
@@ -123,4 +145,3 @@ public class GeofenceTrasitionService extends IntentService {
         }
     }
 }
-
