@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity
                     }
 
                     //Geofence details from DB
-                    String sGFName = brnSnapshot.getKey().toString();
+                    String sGFName = brnSnapshot.getKey().toString() + "~Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
                     String sGFTitle = "Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
 
                     String[] latlong = brnSnapshot.child("BPLocation").getValue().toString().split(",");
@@ -688,7 +688,9 @@ public class MainActivity extends AppCompatActivity
                 .setCircularRegion(latLng.latitude, latLng.longitude, GEOFENCE_RADIUS)
                 .setExpirationDuration(GEO_DURATION)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER
-                        | Geofence.GEOFENCE_TRANSITION_EXIT)
+                        | Geofence.GEOFENCE_TRANSITION_EXIT
+                        |Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(10*1000)
                 .build();
     }
 
@@ -696,7 +698,7 @@ public class MainActivity extends AppCompatActivity
     private GeofencingRequest createGeofenceRequest(List<Geofence> geofence) {
         Log.d(TAG, "createGeofenceRequest");
         return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER|GeofencingRequest.INITIAL_TRIGGER_DWELL)
                 .addGeofences(geofence)
                 .build();
     }
@@ -710,6 +712,7 @@ public class MainActivity extends AppCompatActivity
             return geoFencePendingIntent;
 
         Intent intent = new Intent(this, GeofenceTrasitionService.class);
+        intent.putExtra("Username",sUserId);
         return PendingIntent.getService(
                 this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -803,6 +806,7 @@ public class MainActivity extends AppCompatActivity
     // Clear Geofence
     private void clearGeofence() {
         Log.d(TAG, "clearGeofence()");
+
         LocationServices.GeofencingApi.removeGeofences(
                 googleApiClient,
                 createGeofencePendingIntent()
