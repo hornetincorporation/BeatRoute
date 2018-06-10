@@ -7,53 +7,65 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
     tools:showIn="@layout/app_bar_main">
+
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="@dimen/map_vertical_margin"
+        android:orientation="vertical"
         android:paddingBottom="@dimen/map_vertical_margin"
         android:paddingLeft="@dimen/map_horizontal_margin"
         android:paddingRight="@dimen/map_horizontal_margin"
-        android:orientation="vertical">
+        android:paddingTop="@dimen/map_vertical_margin">
 
         <!-- Line with Latitude and Longitude -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:background="@color/colorPrimaryDark"
-            android:paddingTop="5dp"
+            android:orientation="horizontal"
+            android:paddingBottom="5dp"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:paddingBottom="5dp">
+            android:paddingTop="5dp">
 
             <!--Latitude-->
             <TextView
                 android:id="@+id/lat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
                 android:layout_weight="0.5"
-                android:text="Lat: " />
+                android:text="Lat: "
+                android:textColor="@color/white" />
 
             <!--Longitude-->
             <TextView
                 android:id="@+id/lon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/white"
                 android:layout_weight="0.5"
-                android:text="Long: " />
+                android:text="Long: "
+                android:textColor="@color/white" />
 
         </LinearLayout>
-
         <!--GoogleMap fragment-->
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            android:name="com.google.android.gms.maps.MapFragment"
             android:id="@+id/map"
+            android:name="com.google.android.gms.maps.MapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent">
 
+            <TextView
+                android:id="@+id/devorg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
+                android:paddingBottom="@dimen/nav_header_vertical_spacing"
+                android:shadowColor="@color/colorAccent"
+                android:shadowDx="-2"
+                android:shadowDy="-2"
+                android:shadowRadius="6"
+                android:text="@string/dev_org" />
+        </fragment>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
