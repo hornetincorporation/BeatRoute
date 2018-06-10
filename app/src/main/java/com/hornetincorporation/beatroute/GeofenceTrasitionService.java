@@ -10,6 +10,7 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
@@ -59,7 +60,12 @@ public class GeofenceTrasitionService extends IntentService {
             // Get the geofence that were triggered
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
-            String geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences, UN);
+            Location location = geofencingEvent.getTriggeringLocation();
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            String slatlng = latitude + ", " + longitude;
+
+            String geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences, UN, slatlng);
 
             // Send notification details as a String
             sendNotification(geofenceTransitionDetails);
@@ -67,13 +73,17 @@ public class GeofenceTrasitionService extends IntentService {
     }
 
 
-    private String getGeofenceTrasitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences, String UName) {
+    private String getGeofenceTrasitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences, String UName, String latlng) {
         // get the ID of each geofence triggered
         ArrayList<String> triggeringGeofencesListName = new ArrayList<>();
         ArrayList<String> triggeringGeofencesListID = new ArrayList<>();
+        ArrayList<String> Route = new ArrayList<>();
+        ArrayList<String> Point = new ArrayList<>();
         for (Geofence geofence : triggeringGeofences) {
             triggeringGeofencesListName.add(geofence.getRequestId().split("~")[1]);
             triggeringGeofencesListID.add(geofence.getRequestId().split("~")[0]);
+            Route.add(geofence.getRequestId().split("~")[1].split("'")[1]);
+            Point.add(geofence.getRequestId().split("~")[1].split("'")[3]);
         }
         String status = null;
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER)
@@ -88,6 +98,9 @@ public class GeofenceTrasitionService extends IntentService {
         beetpointvisit.put("BPVTransition", status);
         beetpointvisit.put("BPVBeetPointID", TextUtils.join(", ", triggeringGeofencesListID));
         beetpointvisit.put("BPVBeetRouteNPoint", TextUtils.join(", ", triggeringGeofencesListName));
+        beetpointvisit.put("BPVLocation", latlng);
+        beetpointvisit.put("BPVPoint", TextUtils.join(", ", Point));
+        beetpointvisit.put("BPVRoute", TextUtils.join(", ", Route));
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + UName);
         databaseReference.child(getDateTimeInstance().format(new Date()).toString()).setValue(beetpointvisit);

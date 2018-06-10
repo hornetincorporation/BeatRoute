@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity
     private static final float GEOFENCE_RADIUS = 50.0f; // in meters
 
     FirebaseDatabase database;
-    DatabaseReference beatroute, beetpoints, beetroot, beeterlastlocation, beeterlocation, beetrootdraw;
+    DatabaseReference beatroute, beetpoints, beetroot, beeterlastlocation, beeterlocation, beetrootdraw, beetpointvisited;
 
     ArrayAdapter beetrootname;
 
@@ -689,8 +689,8 @@ public class MainActivity extends AppCompatActivity
                 .setExpirationDuration(GEO_DURATION)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER
                         | Geofence.GEOFENCE_TRANSITION_EXIT
-                        |Geofence.GEOFENCE_TRANSITION_DWELL)
-                .setLoiteringDelay(10*1000)
+                        | Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(10 * 1000)
                 .build();
     }
 
@@ -698,7 +698,7 @@ public class MainActivity extends AppCompatActivity
     private GeofencingRequest createGeofenceRequest(List<Geofence> geofence) {
         Log.d(TAG, "createGeofenceRequest");
         return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER|GeofencingRequest.INITIAL_TRIGGER_DWELL)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
                 .addGeofences(geofence)
                 .build();
     }
@@ -712,7 +712,7 @@ public class MainActivity extends AppCompatActivity
             return geoFencePendingIntent;
 
         Intent intent = new Intent(this, GeofenceTrasitionService.class);
-        intent.putExtra("Username",sUserId);
+        intent.putExtra("Username", sUserId);
         return PendingIntent.getService(
                 this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
@@ -910,6 +910,56 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+
+    private void PointsVisited() {
+
+        beetpointvisited = beatroute.child("beetpointvisits").child(sUserId).getRef();
+
+        beetpointvisited.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Date beetpointvisitdate, curdate;
+                ArrayList<String> BeetPointVisitedID = new ArrayList<>();
+
+                if (navigationView.getMenu().findItem(R.id.nav_points_covered).isChecked()) {
+
+                    for (DataSnapshot bPointVisitSnapshot : dataSnapshot.getChildren()) {
+                        beetpointvisitdate = null;
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+                        try {
+                            beetpointvisitdate = dateFormat.parse(bPointVisitSnapshot.getKey().toString());
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        curdate = Calendar.getInstance().getTime();
+
+                        long difference = Math.abs(curdate.getTime() - beetpointvisitdate.getTime());
+                        long differenceDates = difference / (24 * 60 * 60 * 1000);
+
+                        if (differenceDates <= 1) {
+                            if (bPointVisitSnapshot.child("BPVTransition").getValue().toString().equals("Stayed for 10 secs in ")) {
+                                String sGFTitle = "Route: '" + bPointVisitSnapshot.child("BPVRoute").getValue().toString() + "', Point: '" + bPointVisitSnapshot.child("BPVPoint").getValue().toString() + "'";
+
+                                String[] latlong = bPointVisitSnapshot.child("BPVLocation").getValue().toString().split(",");
+                                double gflat = Double.parseDouble(latlong[0]);
+                                double gflong = Double.parseDouble(latlong[1]);
+
+                                LatLng gflocation = new LatLng(gflat, gflong);
+
+                                markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(100000000).substring(0, 6));
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        // create GoogleApiClient
@@ -933,6 +983,8 @@ public class MainActivity extends AppCompatActivity
             getLastKnownLocation();
         } else if (id == R.id.nav_points_covered) {
             map.clear();
+            drawGeofenceFromDB();
+            PointsVisited();
             getLastKnownLocation();
         } else if (id == R.id.nav_beeters_location) {
             map.clear();
