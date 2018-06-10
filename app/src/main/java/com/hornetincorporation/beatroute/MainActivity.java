@@ -938,7 +938,7 @@ public class MainActivity extends AppCompatActivity
 
                         if (differenceDates <= 1) {
                             if (bPointVisitSnapshot.child("BPVTransition").getValue().toString().equals("Stayed for 10 secs in ")) {
-                                String sGFTitle = "Route: '" + bPointVisitSnapshot.child("BPVRoute").getValue().toString() + "', Point: '" + bPointVisitSnapshot.child("BPVPoint").getValue().toString() + "'";
+                                String sGFTitle = "Visited Route: '" + bPointVisitSnapshot.child("BPVRoute").getValue().toString() + "', Point: '" + bPointVisitSnapshot.child("BPVPoint").getValue().toString() + "' at " + bPointVisitSnapshot.getKey().toString();
 
                                 String[] latlong = bPointVisitSnapshot.child("BPVLocation").getValue().toString().split(",");
                                 double gflat = Double.parseDouble(latlong[0]);
