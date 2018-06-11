@@ -51,7 +51,14 @@ public class GeofenceTrasitionService extends IntentService {
             Log.e(TAG, errorMsg);
             return;
         }
-        String UN = intent.getStringExtra("Username");
+        String UID = intent.getStringExtra("UserID");
+        String UNM = intent.getStringExtra("UserName");
+        String EML = intent.getStringExtra("EmailID");
+        String PHN = intent.getStringExtra("PhoneNumber");
+        String OID = intent.getStringExtra("OfficialID");
+        String OFR = intent.getStringExtra("Officer");
+        //String UID = intent.getStringExtra("PhotoURL4mSU");
+
         int geoFenceTransition = geofencingEvent.getGeofenceTransition();
         // Check if the transition type is of interest
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
@@ -65,15 +72,15 @@ public class GeofenceTrasitionService extends IntentService {
             double longitude = location.getLongitude();
             String slatlng = latitude + ", " + longitude;
 
-            String geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences, UN, slatlng);
+            String geofenceTransitionDetails = getGeofenceTrasitionDetails(geoFenceTransition, triggeringGeofences, UID, slatlng);
 
             // Send notification details as a String
-            sendNotification(geofenceTransitionDetails);
+            sendNotification(geofenceTransitionDetails, UID, UNM, EML, PHN, OID, OFR);
         }
     }
 
 
-    private String getGeofenceTrasitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences, String UName, String latlng) {
+    private String getGeofenceTrasitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences, String UserID, String latlng) {
         // get the ID of each geofence triggered
         ArrayList<String> triggeringGeofencesListName = new ArrayList<>();
         ArrayList<String> triggeringGeofencesListID = new ArrayList<>();
@@ -90,29 +97,29 @@ public class GeofenceTrasitionService extends IntentService {
             status = "Entering ";
         else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT)
             status = "Exiting ";
-        else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL)
+        else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             status = "Stayed for 10 secs in ";
+            //Store beet point visits in db only when user stays for more than 10 secs
+            Map<String, Object> beetpointvisit = new HashMap<>();
+            beetpointvisit.put("BPVTransition", status);
+            beetpointvisit.put("BPVBeetPointID", TextUtils.join(", ", triggeringGeofencesListID));
+            beetpointvisit.put("BPVBeetRouteNPoint", TextUtils.join(", ", triggeringGeofencesListName));
+            beetpointvisit.put("BPVLocation", latlng);
+            beetpointvisit.put("BPVPoint", TextUtils.join(", ", Point));
+            beetpointvisit.put("BPVRoute", TextUtils.join(", ", Route));
 
-        //Store beet point visits in db
-        Map<String, Object> beetpointvisit = new HashMap<>();
-        beetpointvisit.put("BPVTransition", status);
-        beetpointvisit.put("BPVBeetPointID", TextUtils.join(", ", triggeringGeofencesListID));
-        beetpointvisit.put("BPVBeetRouteNPoint", TextUtils.join(", ", triggeringGeofencesListName));
-        beetpointvisit.put("BPVLocation", latlng);
-        beetpointvisit.put("BPVPoint", TextUtils.join(", ", Point));
-        beetpointvisit.put("BPVRoute", TextUtils.join(", ", Route));
-
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + UName);
-        databaseReference.child(getDateTimeInstance().format(new Date()).toString()).setValue(beetpointvisit);
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + UserID);
+            databaseReference.child(getDateTimeInstance().format(new Date()).toString()).setValue(beetpointvisit);
+        }
         return status + TextUtils.join(", ", triggeringGeofencesListName);
     }
 
-    private void sendNotification(String msg) {
+    private void sendNotification(String msg, String UserID, String UserN, String Email, String Phone, String OffID, String Officer) {
         Log.i(TAG, "sendNotification: " + msg);
 
         // Intent to start the main Activity
         Intent notificationIntent = MainActivity.makeNotificationIntent(
-                getApplicationContext(), msg
+                getApplicationContext(), msg, UserID, UserN, Email, Phone, OffID, Officer
         );
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);

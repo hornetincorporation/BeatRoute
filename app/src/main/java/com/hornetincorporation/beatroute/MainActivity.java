@@ -138,9 +138,17 @@ public class MainActivity extends AppCompatActivity
     private static final String NOTIFICATION_MSG = "NOTIFICATION MSG";
 
     // Create a Intent send by the notification
-    public static Intent makeNotificationIntent(Context context, String msg) {
+    public static Intent makeNotificationIntent(Context context, String msg, String UserID, String UserN, String Email, String Phone, String OffID, String Officer) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(NOTIFICATION_MSG, msg);
+
+        intent.putExtra("UserID",UserID);
+//          mintent.putExtra("PhotoURL4mSU", user.getPhotoUrl());
+        intent.putExtra("UserName", UserN);
+        intent.putExtra("EmailID", Email);
+        intent.putExtra("PhoneNumber", Phone);
+        intent.putExtra("OfficialID", OffID);
+        intent.putExtra("Officer", Officer);
         return intent;
     }
 
@@ -502,16 +510,22 @@ public class MainActivity extends AppCompatActivity
                     .setPositiveButton("OK",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    beetpoints = beatroute.child("beetpoints").getRef();
+                                    if(acTVBRName.getText().length()> 0 && editTextBPName.getText().length()> 0) {
+                                        beetpoints = beatroute.child("beetpoints").getRef();
 
-                                    Map<String, Object> beetpoint = new HashMap<>();
-                                    beetpoint.put("BPActive", "Yes");
-                                    beetpoint.put("BPCreatedDT", getDateTimeInstance().format(new Date()).toString());
-                                    beetpoint.put("BPLocation", BPLoc.toString());
-                                    beetpoint.put("BPPoint", editTextBPName.getText().toString());
-                                    beetpoint.put("BPRoute", acTVBRName.getText().toString());
+                                        Map<String, Object> beetpoint = new HashMap<>();
+                                        beetpoint.put("BPActive", "Yes");
+                                        beetpoint.put("BPCreatedDT", getDateTimeInstance().format(new Date()).toString());
+                                        beetpoint.put("BPLocation", BPLoc.toString());
+                                        beetpoint.put("BPPoint", editTextBPName.getText().toString());
+                                        beetpoint.put("BPRoute", acTVBRName.getText().toString());
 
-                                    beetpoints.push().setValue(beetpoint);
+                                        beetpoints.push().setValue(beetpoint);
+                                    }
+                                    else{
+                                        //Snackbar.make(promptsView.findViewById(R.id.main_layout), "Please fill both fields.", Snackbar.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "Please fill both fields.", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
                             })
                     .setNegativeButton("Cancel",
@@ -734,7 +748,13 @@ public class MainActivity extends AppCompatActivity
             return geoFencePendingIntent;
 
         Intent intent = new Intent(this, GeofenceTrasitionService.class);
-        intent.putExtra("Username", sUserId);
+        intent.putExtra("UserID", sUserId);
+//          mintent.putExtra("PhotoURL4mSU", user.getPhotoUrl());
+        intent.putExtra("UserName", sUserName);
+        intent.putExtra("EmailID", sEmailID);
+        intent.putExtra("PhoneNumber", sPhoneNumber);
+        intent.putExtra("OfficialID", sOfficialID);
+        intent.putExtra("Officer", sOfficer);
         return PendingIntent.getService(
                 this, GEOFENCE_REQ_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }

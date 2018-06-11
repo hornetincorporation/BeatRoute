@@ -82,6 +82,7 @@ public class SignUp extends BaseActivity implements
 
         // Button listeners
         findViewById(R.id.nextbutton).setOnClickListener(this);
+        findViewById(R.id.sout_button).setOnClickListener(this);
 
         //Get the bundle
         Bundle bundle = getIntent().getExtras();
@@ -205,7 +206,7 @@ public class SignUp extends BaseActivity implements
                 Snackbar.make(findViewById(R.id.main_layout), "User Account already exists! Taking to your account.", Snackbar.LENGTH_SHORT).show();
                 updateUI();
             }
-        } else if (i == R.id.sign_out_button)
+        } else if (i == R.id.sout_button)
         {
             FirebaseAuth.getInstance().signOut();
 
