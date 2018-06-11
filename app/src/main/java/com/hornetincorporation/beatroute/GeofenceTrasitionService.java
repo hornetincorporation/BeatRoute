@@ -164,9 +164,9 @@ public class GeofenceTrasitionService extends IntentService {
                 .setTicker("Geofence Notification!")
                 //     .setPriority(Notification.PRIORITY_MAX)
                 .setContentTitle(msg)
-                .setContentText("Geofence Notification!")
+                .setContentText("Beat Route Notification!")
                 .setContentIntent(notificationPendingIntent)
-                .setContentInfo("Info");
+                .setContentInfo(msg + " From Hornet Incorporation");
 
         return notificationBuilder.build();
     }
