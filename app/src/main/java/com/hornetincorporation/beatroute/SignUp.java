@@ -194,9 +194,6 @@ public class SignUp extends BaseActivity implements
 
                     beeters.child(sUserId4mSU).setValue(beeter);
 
-//                    database = FirebaseDatabase.getInstance();
-//                    beeters = database.getReference("beeters");
-//                    beeters.keepSynced(true);
                     checkSUData(beeters);
 
                     Snackbar.make(findViewById(R.id.main_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
