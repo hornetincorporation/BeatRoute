@@ -162,6 +162,7 @@ public class GSignIn extends BaseActivity implements
             i.putExtra("EmailID4mSU", user.getEmail());
             i.putExtra("PhoneNumber4mSU", user.getPhoneNumber());
             startActivity(i);
+            GSignIn.this.finish();
         } else {
             findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
             findViewById(R.id.sign_out_button).setVisibility(View.GONE);

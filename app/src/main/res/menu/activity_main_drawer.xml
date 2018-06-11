@@ -39,6 +39,10 @@
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_menu_send"
                 android:title="Send" />
+            <item
+                android:id="@+id/nav_sign_off"
+                android:icon="@drawable/ic_round_exit_to_app_24px"
+                android:title="Sign Out" />
         </menu>
     </item>
 

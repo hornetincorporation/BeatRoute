@@ -14,6 +14,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.annotations.NotNull;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -94,22 +97,15 @@ public class SignUp extends BaseActivity implements
         etUserName.setText(sUserName4mSU);
         etEmailID.setText(sEmailID4mSU);
         etPhoneNum.setText(sPhoneNumber4mSU);
+
+        database = FirebaseDatabase.getInstance();
+        beeters = database.getReference("beeters");
+        //beeters.keepSynced(true);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        database = FirebaseDatabase.getInstance();
-        beeters = database.getReference("beeters");
-        checkSUData(beeters);
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        database = FirebaseDatabase.getInstance();
-        beeters = database.getReference("beeters");
         checkSUData(beeters);
     }
 
@@ -132,6 +128,7 @@ public class SignUp extends BaseActivity implements
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 listener.onFailed(databaseError);
+                Snackbar.make(findViewById(R.id.main_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -167,7 +164,7 @@ public class SignUp extends BaseActivity implements
 
             @Override
             public void onFailed(DatabaseError databaseError) {
-                //DO SOME THING WHEN GET DATA FAILED HERE
+                Snackbar.make(findViewById(R.id.main_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -197,8 +194,9 @@ public class SignUp extends BaseActivity implements
 
                     beeters.child(sUserId4mSU).setValue(beeter);
 
-                    database = FirebaseDatabase.getInstance();
-                    beeters = database.getReference("beeters");
+//                    database = FirebaseDatabase.getInstance();
+//                    beeters = database.getReference("beeters");
+//                    beeters.keepSynced(true);
                     checkSUData(beeters);
 
                     Snackbar.make(findViewById(R.id.main_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
@@ -208,9 +206,34 @@ public class SignUp extends BaseActivity implements
                 }
             } else {
                 Snackbar.make(findViewById(R.id.main_layout), "User Account already exists! Taking to your account.", Snackbar.LENGTH_SHORT).show();
-                movetonextpage();
+                updateUI();
             }
+        } else if (i == R.id.sign_out_button)
+        {
+            FirebaseAuth.getInstance().signOut();
+
+            // Google sign out
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .requestProfile()
+                    .build();
+            // [END config_signin]
+            GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+            mGoogleSignInClient.signOut().addOnCompleteListener(this,
+                    new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            movetofirstpage();
+                        }
+                    });
         }
+    }
+
+    private void movetofirstpage() {
+        Intent i = new Intent(this, GSignIn.class);
+        startActivity(i);
+        SignUp.this.finish();
     }
 
     private void updateUI() {
@@ -243,12 +266,6 @@ public class SignUp extends BaseActivity implements
         mintent.putExtra("Officer", txOfficer.getText().toString());
 
         startActivity(mintent);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        database = FirebaseDatabase.getInstance();
-        beeters = database.getReference("beeters");
-        super.onActivityResult(requestCode, resultCode, data);
+        SignUp.this.finish();
     }
 }

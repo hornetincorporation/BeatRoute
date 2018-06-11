@@ -42,6 +42,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -67,8 +70,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -128,7 +134,7 @@ public class MainActivity extends AppCompatActivity
 
     NavigationView navigationView;
     //LatLng gflocation;
-
+    int k = 0;
     private static final String NOTIFICATION_MSG = "NOTIFICATION MSG";
 
     // Create a Intent send by the notification
@@ -157,6 +163,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //To track back button pressed
+                k = 0;
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
@@ -229,6 +237,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+
+        //To track back button pressed
+        k = 0;
+
         // Call GoogleApiClient connection when starting the Activity
         googleApiClient.connect();
 
@@ -347,8 +359,12 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            //super.onBackPressed();
-
+            k++;
+            if (k == 1) {
+                Toast.makeText(MainActivity.this, "Please press again to exit activity.", Toast.LENGTH_SHORT).show();
+            } else {
+                super.onBackPressed();
+            }
         }
     }
 
@@ -364,8 +380,10 @@ public class MainActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
+        int id = item.getItemId();
+        //To track back button pressed
+        k = 0;
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -448,6 +466,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapClick(LatLng latLng) {
         Log.d(TAG, "onMapClick(" + latLng + ")");
+        //To track back button pressed
+        k = 0;
         if (navigationView.getMenu().findItem(R.id.nav_add_beat_points).isChecked()) {
             markerForGeofence("Add New Route/Point", latLng, "#" + Integer.toHexString(100000000).substring(0, 6));
         }
@@ -456,6 +476,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onMarkerClick(final Marker marker) {
         Log.d(TAG, "onMarkerClickListener: " + marker.getPosition());
+        //To track back button pressed
+        k = 0;
         if (marker.getTitle().trim().equals("Add New Route/Point")) {
 
             final String BPLoc = marker.getPosition().latitude + ", " + marker.getPosition().longitude;
@@ -960,16 +982,24 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-//    @Override
+    //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        // create GoogleApiClient
 //        createGoogleApi();
 //        super.onActivityResult(requestCode, resultCode, data);
 //    }
+    private void movetofirstpage() {
+        Intent i = new Intent(this, GSignIn.class);
+        startActivity(i);
+        MainActivity.this.finish();
+    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
+
     public boolean onNavigationItemSelected(MenuItem item) {
+        //To track back button pressed
+        k = 0;
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -997,7 +1027,24 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_send) {
             map.clear();
+        } else if (id == R.id.nav_sign_off) {
+            FirebaseAuth.getInstance().signOut();
 
+            // Google sign out
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .requestProfile()
+                    .build();
+            // [END config_signin]
+            GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+            mGoogleSignInClient.signOut().addOnCompleteListener(this,
+                    new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            movetofirstpage();
+                        }
+                    });
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
