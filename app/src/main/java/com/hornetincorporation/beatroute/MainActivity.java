@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(NOTIFICATION_MSG, msg);
 
-        intent.putExtra("UserID",UserID);
+        intent.putExtra("UserID", UserID);
 //          mintent.putExtra("PhotoURL4mSU", user.getPhotoUrl());
         intent.putExtra("UserName", UserN);
         intent.putExtra("EmailID", Email);
@@ -264,35 +264,37 @@ public class MainActivity extends AppCompatActivity
                 String lastbeetrootname = "";
                 boolean first = true;
                 Integer iClr = 0;
-                for (DataSnapshot brnSnapshot : dataSnapshot.getChildren()) {
-                    if (first) {
-                        beetrootname.clear();
-                        first = false;
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot brnSnapshot : dataSnapshot.getChildren()) {
+                        if (first) {
+                            beetrootname.clear();
+                            first = false;
+                        }
+                        if (lastbeetrootname.trim().equals("") || !lastbeetrootname.trim().equals(brnSnapshot.child("BPRoute").getValue().toString().trim())) {
+                            beetrootname.add(brnSnapshot.child("BPRoute").getValue().toString());
+                            lastbeetrootname = brnSnapshot.child("BPRoute").getValue().toString();
+                            iClr = brnSnapshot.hashCode();
+                        }
+
+                        //Geofence details from DB
+                        String sGFName = brnSnapshot.getKey().toString() + "~Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
+                        String sGFTitle = "Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
+
+                        String[] latlong = brnSnapshot.child("BPLocation").getValue().toString().split(",");
+                        double gflat = Double.parseDouble(latlong[0]);
+                        double gflong = Double.parseDouble(latlong[1]);
+
+                        LatLng gflocation = new LatLng(gflat, gflong);
+
+                        markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(iClr).substring(0, 6));
+                        drawGeofence(gflocation);
+                        //createGeofence(sGFName, gflocation));
+                        Geofence geofence = createGeofence(sGFName, gflocation);
+                        mGeofenceList.add(geofence);
                     }
-                    if (lastbeetrootname.trim().equals("") || !lastbeetrootname.trim().equals(brnSnapshot.child("BPRoute").getValue().toString().trim())) {
-                        beetrootname.add(brnSnapshot.child("BPRoute").getValue().toString());
-                        lastbeetrootname = brnSnapshot.child("BPRoute").getValue().toString();
-                        iClr = brnSnapshot.hashCode();
-                    }
-
-                    //Geofence details from DB
-                    String sGFName = brnSnapshot.getKey().toString() + "~Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
-                    String sGFTitle = "Route: '" + brnSnapshot.child("BPRoute").getValue().toString() + "', Point: '" + brnSnapshot.child("BPPoint").getValue().toString() + "'";
-
-                    String[] latlong = brnSnapshot.child("BPLocation").getValue().toString().split(",");
-                    double gflat = Double.parseDouble(latlong[0]);
-                    double gflong = Double.parseDouble(latlong[1]);
-
-                    LatLng gflocation = new LatLng(gflat, gflong);
-
-                    markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(iClr).substring(0, 6));
-                    drawGeofence(gflocation);
-                    //createGeofence(sGFName, gflocation));
-                    Geofence geofence = createGeofence(sGFName, gflocation);
-                    mGeofenceList.add(geofence);
+                    GeofencingRequest geofenceRequest = createGeofenceRequest(mGeofenceList);
+                    addGeofence(geofenceRequest);
                 }
-                GeofencingRequest geofenceRequest = createGeofenceRequest(mGeofenceList);
-                addGeofence(geofenceRequest);
             }
 
             @Override
@@ -510,7 +512,7 @@ public class MainActivity extends AppCompatActivity
                     .setPositiveButton("OK",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int id) {
-                                    if(acTVBRName.getText().length()> 0 && editTextBPName.getText().length()> 0) {
+                                    if (acTVBRName.getText().length() > 0 && editTextBPName.getText().length() > 0) {
                                         beetpoints = beatroute.child("beetpoints").getRef();
 
                                         Map<String, Object> beetpoint = new HashMap<>();
@@ -521,8 +523,7 @@ public class MainActivity extends AppCompatActivity
                                         beetpoint.put("BPRoute", acTVBRName.getText().toString());
 
                                         beetpoints.push().setValue(beetpoint);
-                                    }
-                                    else{
+                                    } else {
                                         //Snackbar.make(promptsView.findViewById(R.id.main_layout), "Please fill both fields.", Snackbar.LENGTH_SHORT).show();
                                         Toast.makeText(MainActivity.this, "Please fill both fields.", Toast.LENGTH_SHORT).show();
                                     }
@@ -692,13 +693,16 @@ public class MainActivity extends AppCompatActivity
 //            if (geoFenceMarker != null)
 //                geoFenceMarker.remove();
             if (title.trim().equals("Add New Route/Point")) {
-                if (geoFenceMarker.getTitle().equals("Add New Route/Point")) {
-                    geoFenceMarker.remove();
+                if (geoFenceMarker != null) {
+                    if (geoFenceMarker.getTitle().equals("Add New Route/Point")) {
+                        geoFenceMarker.remove();
+                    }
                 }
             }
             geoFenceMarker = map.addMarker(markerOptions);
         }
     }
+
     private Marker VisitedMarker;
 
     private void markerVisited(String title, LatLng latLng, String sColor) {
