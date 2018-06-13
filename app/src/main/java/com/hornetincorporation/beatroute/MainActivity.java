@@ -819,6 +819,9 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onSuccess(Void aVoid) {
                             // Geofences added
+                            Toast.makeText(MainActivity.this, "Beat Route monitoring started", Toast.LENGTH_SHORT).show();
+
+
                         }
                     })
                     .addOnFailureListener(this, new OnFailureListener() {
