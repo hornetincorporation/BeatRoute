@@ -150,10 +150,10 @@ public class SignUp extends BaseActivity implements
                         if (beeterSnapshot.exists()) {
                             if (beeterSnapshot.getKey().toString().equals(sUserId4mSU)) {
                                 txUserName.setText(beeterSnapshot.child("BUserName").getValue().toString());
-                                txEmailID.setText("Email: " + beeterSnapshot.child("BEmailID").getValue().toString());
-                                txPhoneNum.setText("Phone: " + beeterSnapshot.child("BPhoneNumber").getValue().toString());
-                                txOfficialID.setText("Metal Number: " + beeterSnapshot.child("BOfficialID").getValue().toString());
-                                txOfficer.setText("Officer: " + beeterSnapshot.child("BOfficer").getValue().toString());
+                                txEmailID.setText(beeterSnapshot.child("BEmailID").getValue().toString());
+                                txPhoneNum.setText(beeterSnapshot.child("BPhoneNumber").getValue().toString());
+                                txOfficialID.setText(beeterSnapshot.child("BOfficialID").getValue().toString());
+                                txOfficer.setText(beeterSnapshot.child("BOfficer").getValue().toString());
                                 break;
                             }
                         }
