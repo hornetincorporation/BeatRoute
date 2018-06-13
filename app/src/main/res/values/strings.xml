@@ -112,7 +112,7 @@
     <string name="email_fmt">Email: %s</string>
 
     <string name="title_activity_main">MainActivity</string>
-    <string name="official_id">Official ID</string>
+    <string name="official_id">Metal Number</string>
     <string name="are_you_an_officer">Are you an Officer?</string>
     <string name="name">Name</string>
     <string name="title_activity_maps">Map</string>

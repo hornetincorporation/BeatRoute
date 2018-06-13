@@ -699,6 +699,55 @@ public class MainActivity extends AppCompatActivity
             geoFenceMarker = map.addMarker(markerOptions);
         }
     }
+    private Marker VisitedMarker;
+
+    private void markerVisited(String title, LatLng latLng, String sColor) {
+        Log.i(TAG, "markerVisited(" + latLng + ")");
+        //String title = latLng.latitude + ", " + latLng.longitude;
+        // Define marker options
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng)
+                //.icon(vectorToBitmap(R.drawable.ic_round_location_city_24px, Color.parseColor(sColor)))
+                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_round_location_city_24px))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                .title(title);
+        if (map != null) {
+            // Remove last geoFenceMarker
+//            if (geoFenceMarker != null)
+//                geoFenceMarker.remove();
+            if (title.trim().equals("Add New Route/Point")) {
+                if (VisitedMarker.getTitle().equals("Add New Route/Point")) {
+                    VisitedMarker.remove();
+                }
+            }
+            VisitedMarker = map.addMarker(markerOptions);
+        }
+    }
+
+    private Marker CurPosMarker;
+
+    private void markerCurPos(String title, LatLng latLng, String sColor) {
+        Log.i(TAG, "markerVisited(" + latLng + ")");
+        //String title = latLng.latitude + ", " + latLng.longitude;
+        // Define marker options
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(latLng)
+                //.icon(vectorToBitmap(R.drawable.ic_round_location_city_24px, Color.parseColor(sColor)))
+                //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_round_location_city_24px))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
+                .title(title);
+        if (map != null) {
+            // Remove last geoFenceMarker
+//            if (geoFenceMarker != null)
+//                geoFenceMarker.remove();
+            if (title.trim().equals("Add New Route/Point")) {
+                if (CurPosMarker.getTitle().equals("Add New Route/Point")) {
+                    CurPosMarker.remove();
+                }
+            }
+            CurPosMarker = map.addMarker(markerOptions);
+        }
+    }
 
     // Start Geofence creation process
 //    private void startGeofence() {
@@ -897,7 +946,7 @@ public class MainActivity extends AppCompatActivity
                         long difference = Math.abs(curdate.getTime() - beetingdate.getTime());
                         long differenceDates = difference / (24 * 60 * 60 * 1000);
 
-                        if (differenceDates <= 1) {
+                        if (differenceDates < 1) {
                             String[] latlong = bLocSnapshot.getValue().toString().split(",");
                             double gflat = Double.parseDouble(latlong[0]);
                             double gflong = Double.parseDouble(latlong[1]);
@@ -941,7 +990,7 @@ public class MainActivity extends AppCompatActivity
 
                         LatLng lllocation = new LatLng(lllat, lllong);
 
-                        markerForGeofence(sLLTitle, lllocation, "#" + Integer.toHexString(bLocSnapshot.hashCode()).substring(0, 6));
+                        markerCurPos(sLLTitle, lllocation, "#" + Integer.toHexString(bLocSnapshot.hashCode()).substring(0, 6));
                     }
                 }
             }
@@ -978,7 +1027,7 @@ public class MainActivity extends AppCompatActivity
                         long difference = Math.abs(curdate.getTime() - beetpointvisitdate.getTime());
                         long differenceDates = difference / (24 * 60 * 60 * 1000);
 
-                        if (differenceDates <= 1) {
+                        if (differenceDates < 1) {
                             if (bPointVisitSnapshot.child("BPVTransition").getValue().toString().equals("Stayed for 10 secs in ")) {
                                 String sGFTitle = "Visited Route: '" + bPointVisitSnapshot.child("BPVRoute").getValue().toString() + "', Point: '" + bPointVisitSnapshot.child("BPVPoint").getValue().toString() + "' at " + bPointVisitSnapshot.getKey().toString();
 
@@ -988,7 +1037,7 @@ public class MainActivity extends AppCompatActivity
 
                                 LatLng gflocation = new LatLng(gflat, gflong);
 
-                                markerForGeofence(sGFTitle, gflocation, "#" + Integer.toHexString(100000000).substring(0, 6));
+                                markerVisited(sGFTitle, gflocation, "#" + Integer.toHexString(100000000).substring(0, 6));
                             }
                         }
                     }
