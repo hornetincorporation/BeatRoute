@@ -85,8 +85,10 @@
     <string name="firebase_user_management">Firebase User Management</string>
 
     <string name="google_status_fmt">Google User: %s</string>
-    <string name="google_title_text">Beat Route</string>
+    <string name="title_text">Karnataka State Police</string>
     <string name="station_name">KR Puram Police Station</string>
+    <string name="city_name">Bangalore - 560 036</string>
+
 
     <string name="facebook_status_fmt">Facebook User: %s</string>
     <string name="facebook_title_text">Facebook Login</string>
