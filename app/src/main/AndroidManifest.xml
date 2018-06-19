@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
     <application
         android:allowBackup="true"
@@ -26,7 +26,8 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".GSignIn"
+        <activity
+            android:name=".GSignIn"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,9 +41,20 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        </activity>
+        <service
+            android:name=".TrackBeatRoute"
+            android:exported="false" />
+        <service
+            android:name=".TrackBeat"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".ReceiveAlarm"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>
