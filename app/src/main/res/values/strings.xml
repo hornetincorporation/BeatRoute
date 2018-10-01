@@ -1,4 +1,14 @@
 <resources>
+    <!-- Toast strings related to app initialized -->
+    <string name="app_initialized">Beat Route Initiatlized</string>
+
+    <!-- Toast strings related to Location -->
+    <string name="location_gps_disabled">GPS is disabled; Please enable location services</string>
+    <string name="location_gps_signal_not_available">GPS signal not found; Please go to a clear place</string>
+    <string name="location_connection_failed">Google Play Services connection failed; Please restart Beat Route</string>
+    <string name="location_connection_suspended">Google Play Services connection suspended abruptly; Please install latest version of Google Play Services and restart Beat Route</string>
+
+    <!-- Strings related to Navigation -->
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -118,4 +128,6 @@
     <string name="are_you_an_officer">Are you an Officer?</string>
     <string name="name">Name</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="title_activity_main3">Main3Activity</string>
 </resources>

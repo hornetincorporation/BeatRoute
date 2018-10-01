@@ -1,43 +1,37 @@
 package com.hornetincorporation.beatroute;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.firebase.client.annotations.NotNull;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-public class SignUp extends BaseActivity implements
-        View.OnClickListener {
-
-    private static final String TAG = "SignUpActivity";
+public class SignUp extends BaseActivity implements View.OnClickListener {
 
     private ImageView mProfileImage;
     private EditText etUserName;
@@ -59,6 +53,10 @@ public class SignUp extends BaseActivity implements
 
     FirebaseDatabase database;
     DatabaseReference beeters;
+
+    ConnectivityManager connectivityManager;
+    NetworkInfo activeNetwork;
+    boolean isConnected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,13 +99,20 @@ public class SignUp extends BaseActivity implements
 
         database = FirebaseDatabase.getInstance();
         beeters = database.getReference("beeters");
-        //beeters.keepSynced(true);
+        beeters.keepSynced(true);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        checkSUData(beeters);
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        activeNetwork = connectivityManager.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        if (!isConnected){
+            recoverUserInfo();
+        }else {
+            checkSUData(beeters);
+        }
     }
 
     public void getSignUpData(DatabaseReference dbr, final checkSignUp listener) {
@@ -129,7 +134,7 @@ public class SignUp extends BaseActivity implements
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 listener.onFailed(databaseError);
-                Snackbar.make(findViewById(R.id.main_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(R.id.sign_up_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -165,7 +170,7 @@ public class SignUp extends BaseActivity implements
 
             @Override
             public void onFailed(DatabaseError databaseError) {
-                Snackbar.make(findViewById(R.id.main_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(R.id.sign_up_layout), databaseError.getMessage(), Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -197,26 +202,23 @@ public class SignUp extends BaseActivity implements
 
                     checkSUData(beeters);
 
-                    Snackbar.make(findViewById(R.id.main_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(R.id.sign_up_layout), "User Account created", Snackbar.LENGTH_SHORT).show();
 
                 } else {
-                    Snackbar.make(findViewById(R.id.main_layout), "Please fill all fields.", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(R.id.sign_up_layout), "Please fill all fields.", Snackbar.LENGTH_SHORT).show();
                 }
             } else {
-                Snackbar.make(findViewById(R.id.main_layout), "User Account already exists! Taking to your account.", Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(R.id.sign_up_layout), "User Account already exists! Taking to your account.", Snackbar.LENGTH_SHORT).show();
                 updateUI();
             }
-        } else if (i == R.id.sout_button)
-        {
+        } else if (i == R.id.sout_button) {
             FirebaseAuth.getInstance().signOut();
 
-            // Google sign out
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(getString(R.string.default_web_client_id))
                     .requestEmail()
                     .requestProfile()
                     .build();
-            // [END config_signin]
             GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
             mGoogleSignInClient.signOut().addOnCompleteListener(this,
                     new OnCompleteListener<Void>() {
@@ -229,7 +231,7 @@ public class SignUp extends BaseActivity implements
     }
 
     private void movetofirstpage() {
-        Intent i = new Intent(this, GSignIn.class);
+        Intent i = new Intent(this, SignIn.class);
         startActivity(i);
         SignUp.this.finish();
     }
@@ -252,7 +254,13 @@ public class SignUp extends BaseActivity implements
     }
 
     private void movetonextpage() {
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        activeNetwork = connectivityManager.getActiveNetworkInfo();
+        isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
 
+        if(isConnected) {
+            saveUserInfo();
+        }
         Intent mintent = new Intent(this, MainActivity.class);
 
         mintent.putExtra("UserID", sUserId4mSU);
@@ -265,5 +273,31 @@ public class SignUp extends BaseActivity implements
 
         startActivity(mintent);
         SignUp.this.finish();
+    }
+
+    private void saveUserInfo() {
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(Constants.SIGN_UP.PREF_FILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(Constants.SIGN_UP.USER_ID, sUserId4mSU);
+        editor.putString(Constants.SIGN_UP.USER_NAME, txUserName.getText().toString());
+        editor.putString(Constants.SIGN_UP.EMAIL_ID, txEmailID.getText().toString());
+        editor.putString(Constants.SIGN_UP.PHONE_NUMBER, txPhoneNum.getText().toString());
+        editor.putString(Constants.SIGN_UP.OFFICIAL_ID, txOfficialID.getText().toString());
+        editor.putString(Constants.SIGN_UP.OFFICER, txOfficer.getText().toString());
+        editor.commit();
+    }
+
+    private void recoverUserInfo() {
+        SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(Constants.SIGN_UP.PREF_FILE, Context.MODE_PRIVATE);
+
+        if (sharedPref.contains(Constants.SIGN_UP.USER_ID) && sharedPref.contains(Constants.SIGN_UP.USER_NAME) && sharedPref.contains(Constants.SIGN_UP.EMAIL_ID) && sharedPref.contains(Constants.SIGN_UP.PHONE_NUMBER) && sharedPref.contains(Constants.SIGN_UP.OFFICIAL_ID) && sharedPref.contains(Constants.SIGN_UP.OFFICER)) {
+            sUserId4mSU = sharedPref.getString(Constants.SIGN_UP.USER_ID, "DEFAULT");
+            txUserName.setText(sharedPref.getString(Constants.SIGN_UP.USER_NAME, "DEFAULT"));
+            txEmailID.setText(sharedPref.getString(Constants.SIGN_UP.EMAIL_ID, "DEFAULT"));
+            txPhoneNum.setText(sharedPref.getString(Constants.SIGN_UP.PHONE_NUMBER, "DEFAULT"));
+            txOfficialID.setText(sharedPref.getString(Constants.SIGN_UP.OFFICIAL_ID, "DEFAULT"));
+            txOfficer.setText(sharedPref.getString(Constants.SIGN_UP.OFFICER, "DEFAULT"));
+            updateUI();
+        }
     }
 }

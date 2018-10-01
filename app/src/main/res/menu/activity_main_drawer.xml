@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
-
-    <group android:checkableBehavior="single"
-        android:id="@+id/employees_nav">
+    <group
+        android:id="@+id/employees_nav"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_beatpoints"
             android:icon="@drawable/ic_round_location_city_24px"
@@ -18,8 +18,9 @@
             android:icon="@drawable/ic_round_how_to_reg_24px"
             android:title="Completed Beat Points" />
     </group>
-    <group android:checkableBehavior="single"
-        android:id="@+id/officers_nav">
+    <group
+        android:id="@+id/officers_nav"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_beeters_location"
             android:icon="@drawable/ic_round_person_pin_24px"
@@ -28,22 +29,25 @@
             android:id="@+id/nav_add_beat_points"
             android:icon="@drawable/ic_round_location_city_24px"
             android:title="Add Beat Points" />
+        <item
+            android:id="@+id/nav_del_beat_points"
+            android:icon="@drawable/ic_round_location_city_24px"
+            android:title="Delete Beat Points" />
+        <item
+            android:id="@+id/rep_beeter"
+            android:icon="@drawable/ic_grid_on_black_24dp"
+            android:title="Beater wise Report" />
+        <item
+            android:id="@+id/rep_beetpoint"
+            android:icon="@drawable/ic_grid_on_black_24dp"
+            android:title="Beatpoint wise Report" />
     </group>
-    <item android:title="Communicate">
+    <item android:title="Sign Out">
         <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
             <item
                 android:id="@+id/nav_sign_off"
                 android:icon="@drawable/ic_round_exit_to_app_24px"
                 android:title="Sign Out" />
         </menu>
     </item>
-
 </menu>

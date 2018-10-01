@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "572313586766-7rmujq36acsd6q0ts2sfivdrnd5fdbf0.apps.googleusercontent.com",
+          "client_id": "572313586766-f1mjsjhm55ounvpv7vac144of0gq62qh.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.hornetincorporation.beatroute",
-            "certificate_hash": "d0d846318881e2cdf1f096e6996949023c942f0d"
+            "certificate_hash": "716613a5682fbd0373d6b3b1356b9ddd4501e749"
           }
         },
         {

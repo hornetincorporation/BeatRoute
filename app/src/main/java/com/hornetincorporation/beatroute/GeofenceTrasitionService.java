@@ -1,6 +1,5 @@
 package com.hornetincorporation.beatroute;
 
-
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -9,8 +8,11 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
@@ -23,6 +25,7 @@ import com.google.android.gms.location.GeofencingEvent;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,12 +34,12 @@ import java.util.Map;
 
 import static java.text.DateFormat.getDateTimeInstance;
 
-
 public class GeofenceTrasitionService extends IntentService {
-
+    ConnectivityManager connectivityManager;
+    NetworkInfo activeNetwork;
+    boolean isConnected;
+    BeetPointVisitLocalDB beetPointVisitLocalDB;
     private static final String TAG = GeofenceTrasitionService.class.getSimpleName();
-
-    public static final int GEOFENCE_NOTIFICATION_ID = 0;
 
     public GeofenceTrasitionService() {
         super(TAG);
@@ -45,7 +48,6 @@ public class GeofenceTrasitionService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
-        // Handling errors
         if (geofencingEvent.hasError()) {
             String errorMsg = getErrorString(geofencingEvent.getErrorCode());
             Log.e(TAG, errorMsg);
@@ -61,9 +63,7 @@ public class GeofenceTrasitionService extends IntentService {
 
         int geoFenceTransition = geofencingEvent.getGeofenceTransition();
         // Check if the transition type is of interest
-        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
-                geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT ||
-                geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
+        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             // Get the geofence that were triggered
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
@@ -79,7 +79,6 @@ public class GeofenceTrasitionService extends IntentService {
         }
     }
 
-
     private String getGeofenceTrasitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences, String UserID, String latlng) {
         // get the ID of each geofence triggered
         ArrayList<String> triggeringGeofencesListName = new ArrayList<>();
@@ -93,63 +92,83 @@ public class GeofenceTrasitionService extends IntentService {
             Point.add(geofence.getRequestId().split("~")[1].split("'")[3]);
         }
         String status = null;
-        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER)
-            status = "Entering ";
-        else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT)
-            status = "Exiting ";
+        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) status = "Entering ";
         else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             status = "Stayed for 10 secs in ";
             //Store beet point visits in db only when user stays for more than 10 secs
-            Map<String, Object> beetpointvisit = new HashMap<>();
-            beetpointvisit.put("BPVTransition", status);
-            beetpointvisit.put("BPVBeetPointID", TextUtils.join(", ", triggeringGeofencesListID));
-            beetpointvisit.put("BPVBeetRouteNPoint", TextUtils.join(", ", triggeringGeofencesListName));
-            beetpointvisit.put("BPVLocation", latlng);
-            beetpointvisit.put("BPVPoint", TextUtils.join(", ", Point));
-            beetpointvisit.put("BPVRoute", TextUtils.join(", ", Route));
+            final String DTime = DateFormat.getDateTimeInstance().format(new Date());
+            connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            activeNetwork = connectivityManager.getActiveNetworkInfo();
+            isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+            if (isConnected) {
+                beetPointVisitLocalDB = new BeetPointVisitLocalDB(this);
+                Cursor cursorTabExist = beetPointVisitLocalDB.checkTableExists();
+                if (cursorTabExist.getCount() > 0) {
+                    while (cursorTabExist.moveToNext()) {
+                        if (cursorTabExist.getString(0).equals(Constants.BEETPOINTVISIT_LOCAL_DB.TABLE_NAME)) {
+                            Cursor cursorBeetPointVisit = beetPointVisitLocalDB.getAllData();
+                            if (cursorBeetPointVisit.getCount() > 0) {
+                                while (cursorBeetPointVisit.moveToNext()) {
+                                    Map<String, Object> beetpointvisit = new HashMap<>();
+                                    beetpointvisit.put("BPVTransition", cursorBeetPointVisit.getString(3));
+                                    beetpointvisit.put("BPVBeetPointID", cursorBeetPointVisit.getString(4));
+                                    beetpointvisit.put("BPVBeetRouteNPoint", cursorBeetPointVisit.getString(5));
+                                    beetpointvisit.put("BPVLocation", cursorBeetPointVisit.getString(6));
+                                    beetpointvisit.put("BPVPoint", cursorBeetPointVisit.getString(7));
+                                    beetpointvisit.put("BPVRoute", cursorBeetPointVisit.getString(8));
 
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + UserID);
-            databaseReference.child(getDateTimeInstance().format(new Date()).toString()).setValue(beetpointvisit);
+                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + cursorBeetPointVisit.getString(2));
+                                    databaseReference.child(cursorBeetPointVisit.getString(9)).setValue(beetpointvisit);
+                                }
+                            }
+                            Integer deletedRows = beetPointVisitLocalDB.deleteAllData();
+                        }
+                    }
+                }
+
+                Map<String, Object> beetpointvisit = new HashMap<>();
+                beetpointvisit.put("BPVTransition", status);
+                beetpointvisit.put("BPVBeetPointID", TextUtils.join(", ", triggeringGeofencesListID));
+                beetpointvisit.put("BPVBeetRouteNPoint", TextUtils.join(", ", triggeringGeofencesListName));
+                beetpointvisit.put("BPVLocation", latlng);
+                beetpointvisit.put("BPVPoint", TextUtils.join(", ", Point));
+                beetpointvisit.put("BPVRoute", TextUtils.join(", ", Route));
+
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("beetpointvisits/" + UserID);
+                databaseReference.child(getDateTimeInstance().format(new Date()).toString()).setValue(beetpointvisit);
+            } else {
+                //TODO: Save in local db
+                boolean isInserted = beetPointVisitLocalDB.insertData(UserID, status, TextUtils.join(", ", triggeringGeofencesListID), TextUtils.join(", ", triggeringGeofencesListName), latlng, TextUtils.join(", ", Point), TextUtils.join(", ", Route), DTime);
+            }
         }
         return status + TextUtils.join(", ", triggeringGeofencesListName);
     }
 
     private void sendNotification(String msg, String UserID, String UserN, String Email, String Phone, String OffID, String Officer) {
         Log.i(TAG, "sendNotification: " + msg);
-
         // Intent to start the main Activity
-        Intent notificationIntent = MainActivity.makeNotificationIntent(
-                getApplicationContext(), msg, UserID, UserN, Email, Phone, OffID, Officer
-        );
+        Intent notificationIntent = MainActivity.makeNotificationIntent(getApplicationContext(), msg, UserID, UserN, Email, Phone, OffID, Officer);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(notificationIntent);
-        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
+        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(Constants.MAINACTIVITY.MAINACTIVITY_REQUEST_CODE, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Creating and sending Notification
-        NotificationManager notificatioMng =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        String NOTIFICATION_CHANNEL_ID = "my_channel_id_01";
+        NotificationManager notificatioMng = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "My Notifications", NotificationManager.IMPORTANCE_HIGH);
+            NotificationChannel notificationChannel = new NotificationChannel(Constants.GEOFENCE.GEOFENCE_NOTIFICATION_CHANNEL_ID, Constants.GEOFENCE.GEOFENCE_NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
 
             // Configure the notification channel.
-            notificationChannel.setDescription("Channel description");
+            notificationChannel.setDescription(Constants.GEOFENCE.GEOFENCE_NOTIFICATION_CHANNEL_DESC);
             notificationChannel.enableLights(true);
             notificationChannel.setLightColor(Color.RED);
-            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+            notificationChannel.setVibrationPattern(new long[]{0, 100, 500, 100});
             notificationChannel.enableVibration(true);
             notificatioMng.createNotificationChannel(notificationChannel);
         }
-
-        notificatioMng.notify(
-                GEOFENCE_NOTIFICATION_ID,
-                createNotification(msg, notificationPendingIntent, NOTIFICATION_CHANNEL_ID));
-
+        notificatioMng.notify(Constants.GEOFENCE.GEOFENCE_NOTIFICATION_ID, createNotification(msg, notificationPendingIntent, Constants.GEOFENCE.GEOFENCE_NOTIFICATION_CHANNEL_ID));
     }
 
     // Create notification
@@ -159,18 +178,17 @@ public class GeofenceTrasitionService extends IntentService {
         notificationBuilder.setAutoCancel(true)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.ic_round_place_24px)
+                .setSmallIcon(R.drawable.ic_round_swap_calls_24px)
                 .setColor(Color.RED)
-                .setTicker("Geofence Notification!")
-                //     .setPriority(Notification.PRIORITY_MAX)
+                .setTicker("Beat Route Notification from Hornet Incorporation")
+                .setPriority(Notification.PRIORITY_MAX)
                 .setContentTitle(msg)
-                .setContentText("Beat Route Notification!")
+                .setContentText("Beat Route Notification from Hornet Incorporation")
                 .setContentIntent(notificationPendingIntent)
-                .setContentInfo(msg + " From Hornet Incorporation");
-
+                .setContentInfo(msg)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(msg));
         return notificationBuilder.build();
     }
-
 
     private static String getErrorString(int errorCode) {
         switch (errorCode) {
